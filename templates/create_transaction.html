@@ -1,0 +1,16 @@
+{% include 'header.html' %}
+    <form action="{% url 'create_account' %}" method="POST">
+        <select name="from" class="form-select form-select-lg mb-3" aria-label=".form-select-lg example">
+          {% for acc in accounts %}
+            <option value="{{ acc.id }}">acc.id</option>
+          {% endfor %}
+        </select>
+        <select name="to" class="form-select form-select-lg mb-3" aria-label=".form-select-lg example">
+          {% for acc in accounts %}
+            <option value="{{ acc.id }}">acc.id</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-primary">Create account</button>
+    </form>
+</body>
+</html>

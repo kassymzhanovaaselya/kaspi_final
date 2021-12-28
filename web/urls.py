@@ -18,5 +18,7 @@ from django.urls import path
 from web import views
 
 urlpatterns = [
-    path('', views.index)
+    path('', views.index, name='index'),
+    path('accounts/<str:id_>', views.account_info, name='account_info'),
+    path('/create_account', views.create_account, name='create_account')
 ]

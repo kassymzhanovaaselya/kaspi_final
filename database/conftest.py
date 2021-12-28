@@ -1,10 +1,8 @@
-from typing import Type, Any
-
+from typing import Any
+from configs import configs
 import pytest
-
-from database.database import Database
 
 
 @pytest.fixture()
 def connection_string(request: Any) -> str:
-    return "dbname=postgres port=5432 user=postgres password=postgres host=localhost"
+    return configs["db_conn"]

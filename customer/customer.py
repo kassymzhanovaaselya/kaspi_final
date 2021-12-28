@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from decimal import Decimal
 from typing import List
 from uuid import UUID
 
@@ -9,7 +10,7 @@ from common.base_class import Base
 class Customer(Base):
     first_name: str
     last_name: str
-    age: int
+    age: Decimal
 
     def to_json(self) -> dict:
         return {

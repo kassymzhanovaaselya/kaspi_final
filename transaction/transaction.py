@@ -27,6 +27,7 @@ class Transaction(Base):
     def transfer(self) -> str:
         assert isinstance(self.sender, Account)
         assert isinstance(self.recipient, Account)
+
         before_transfer = self.recipient.balance - self.sender.balance
 
         if self.sender.currency != self.recipient.currency:

@@ -1,0 +1,13 @@
+{% include 'header.html' %}
+    <form action="{% url 'create_account' %}" method="POST">
+        <select name="currency" class="form-select form-select-lg mb-3" aria-label=".form-select-lg example">
+          <option selected>Open this select menu and choose currency</option>
+          <option value="KZT">KZT</option>
+          <option value="EUR">EUR</option>
+          <option value="USD">USD</option>
+          <option value="BTC">BTC</option>
+        </select>
+        <button type="submit" class="btn btn-primary">Create account</button>
+    </form>
+</body>
+</html>

@@ -8,6 +8,7 @@ from pandas import DataFrame, Series
 from account.account import Account
 from customer.customer import Customer
 from configs import configs
+from transaction.transaction import Transaction
 
 
 class ObjectNotFound(ValueError):
@@ -61,18 +62,19 @@ class Database:
         """
             FOR WEB APPLICATION LET'S SAVE STATIC CUSTOMER WHICH CAN HAVE SEVERAL ACCOUNTS
         """
-        uuid_str = configs['current_customer_uuid']
-        current_customer = Customer(UUID(uuid_str),
-                                    "Assel",
-                                    "Kassymzhanova",
-                                    20)
-        self.save('customers', current_customer.to_json())
+        if len(self.get_objects('customers')) == 0:
+            uuid_str = configs['current_customer_uuid']
+            current_customer = Customer(UUID(uuid_str),
+                                        "Assel",
+                                        "Kassymzhanova",
+                                        Decimal(20))
+            self.save('customers', current_customer.to_json())
 
-        first_account = Account(uuid4(),
-                                "USD",
-                                Decimal(100),
-                                UUID(uuid_str))
-        self.save("accounts", first_account.to_json())
+            first_account = Account(uuid4(),
+                                    "USD",
+                                    Decimal(100),
+                                    UUID(uuid_str))
+            self.save("accounts", first_account.to_json())
 
         self.conn.commit()
 
@@ -120,7 +122,7 @@ class Database:
         cur.execute(f"delete from {table_name};")
         self.conn.commit()
 
-    def get_objects(self, table_name) -> DataFrame:
+    def get_objects_df(self, table_name) -> DataFrame:
         cur = self.conn.cursor()
         cur.execute(f"select * from {table_name};")
         data = cur.fetchall()
@@ -129,15 +131,45 @@ class Database:
         # return [self.pandas_row_to_account(row) for index, row in df.iterrows()]
         return df
 
-    # def pandas_row_to_account(self, row: Series) -> Account:
-    #     return Account(
-    #         id_=UUID(row["id"]),
-    #         currency=row["currency"],
-    #         balance=row["balance"],
-    #         customer_id=UUID(row['customer_id'])
-    #     )
+    def get_objects(self, table_name):
+        df = self.get_objects_df(table_name)
+        if table_name == "accounts":
+            return [self.pandas_row_to_account(row) for index, row in df.iterrows()]
+        elif table_name == "customers":
+            return [self.pandas_row_to_customer(row) for index, row in df.iterrows()]
+        elif table_name == "transactions":
+            return [self.pandas_row_to_transaction(row) for index, row in df.iterrows()]
 
-    def get_object(self, table_name, id_: UUID) -> DataFrame:
+    def pandas_row_to_account(self, row: Series) -> Account:
+        return Account(
+            id_=UUID(row["id"]),
+            currency=row["currency"],
+            balance=row["balance"],
+            customer_id=UUID(row['customer_id'])
+        )
+
+    def pandas_row_to_customer(self, row: Series) -> Customer:
+        return Customer(
+            id_=UUID(row["id"]),
+            first_name=row["first_name"],
+            last_name=row["last_name"],
+            age=Decimal(row['age']),
+        )
+
+    def pandas_row_to_transaction(self, row: Series) -> Transaction:
+        sender = self.pandas_row_to_account(self.get_object("accounts", UUID(row['sender_id'])))
+        recipient = self.pandas_row_to_account(self.get_object("accounts", UUID(row['recipient_id'])))
+        return Transaction(
+            sender=UUID(row["sender_id"]),
+            recipient=UUID(row["recipient_id"]),
+            transfer_date=float(row["transfer_date"]),
+            balance_brutto=Decimal(row["balance_brutto"]),
+            balance_netto=Decimal(row["balance_netto"]),
+            currency=row["currency"],
+            status=row["status"]
+        )
+
+    def get_object(self, table_name, id_: UUID) -> Series:
         cur = self.conn.cursor()
         cur.execute(f"select * from {table_name} where id = %s;", (str(id_),))
         print("Trying to find", str(id_))
@@ -148,7 +180,7 @@ class Database:
 
         df = pd.DataFrame(data, columns=cols)
         # return self.pandas_row_to_account(row=df.iloc[0])
-        return df
+        return df.iloc[0]
 
     def delete(self, table_name: str, id_: UUID) -> bool:
         cur = self.conn.cursor()

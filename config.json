@@ -1,0 +1,4 @@
+{
+  "db_conn": "dbname=postgres port=5432 user=postgres password=postgres host=localhost",
+  "current_customer_uuid": "464165e5-c42e-459f-b9db-083276e23f25"
+}
